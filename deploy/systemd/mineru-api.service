@@ -1,0 +1,22 @@
+[Unit]
+Description=MinerU Parse API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__DEPLOY_USER__
+WorkingDirectory=__MINERU_DIR__
+Environment=HF_HUB_DISABLE_SYMLINKS=1
+ExecStart=__MINERU_DIR__/run-mineru.sh api
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mineru-api
+
+# Parse PDF có thể chạy lâu, tránh kill giữa chừng
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

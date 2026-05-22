@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hướng dẫn Knowledge Platform</title>
+  <style>
+    @page { margin: 18mm; }
+    body { font-family: "Segoe UI", system-ui, sans-serif; font-size: 11pt; line-height: 1.5; color: #1e293b; max-width: 210mm; margin: 0 auto; padding: 12mm; }
+    h1 { font-size: 20pt; color: #312e81; border-bottom: 2px solid #6366f1; padding-bottom: 8px; }
+    h2 { font-size: 14pt; color: #4338ca; margin-top: 1.2em; page-break-after: avoid; }
+    h3 { font-size: 12pt; margin-top: 1em; }
+    table { width: 100%; border-collapse: collapse; margin: 0.6em 0; font-size: 10pt; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+    th { background: #eef2ff; }
+    code, pre { font-family: Consolas, monospace; font-size: 9pt; background: #f1f5f9; }
+    pre { padding: 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; }
+    .meta { color: #64748b; font-size: 10pt; margin-bottom: 1.5em; }
+    .diagram { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; font-family: Consolas, monospace; font-size: 9pt; white-space: pre; }
+    ul { padding-left: 1.2em; }
+    @media print { body { padding: 0; } h2 { page-break-before: auto; } }
+  </style>
+</head>
+<body>
+  <h1>Hướng dẫn Knowledge Platform</h1>
+  <p class="meta"><strong>MinerU + NestJS + Admin Web</strong> · Phiên bản 0.1 · 2026</p>
+
+  <h2>1. Hệ thống là gì?</h2>
+  <p>Biến PDF/DOCX thành tri thức tìm kiếm được (vector) cho chatbot.</p>
+  <table>
+    <tr><th>Thành phần</th><th>Vai trò</th></tr>
+    <tr><td>Admin UI (:5173)</td><td>Upload, Parse, Index, Test RAG, API Keys</td></tr>
+    <tr><td>Knowledge API (:3000)</td><td>API trung tâm, queue, RAG</td></tr>
+    <tr><td>MinerU (:8000)</td><td>Parse PDF → Markdown + JSON</td></tr>
+    <tr><td>Docker</td><td>Postgres pgvector :5433, Redis :6380, MinIO :9000</td></tr>
+    <tr><td>OpenAI</td><td>Embedding text-embedding-3-small (Index + RAG)</td></tr>
+    <tr><td>App Bot</td><td>POST /rag/query + API Key mk_live_...</td></tr>
+  </table>
+
+  <h2>2. Luồng dữ liệu</h2>
+  <div class="diagram">[Admin UI] ──JWT──► [API :3000] ──► MinIO / Postgres / Redis
+                              │
+                              └──► [MinerU :8000] khi Parse
+
+[Bot] ──API Key──► POST /rag/query ──► contexts ──► Bot gọi LLM trả lời</div>
+
+  <h2>3. Ba bước xử lý tài liệu</h2>
+  <table>
+    <tr><th>Bước</th><th>Nút</th><th>Cần</th><th>Kết quả</th></tr>
+    <tr><td>Upload</td><td>Upload</td><td>API + Docker</td><td>File → MinIO</td></tr>
+    <tr><td>Parse</td><td>Parse</td><td>+ MinerU</td><td>MD + JSON → MinIO</td></tr>
+    <tr><td>Index</td><td>Index</td><td>+ OpenAI</td><td>Vector → Postgres</td></tr>
+  </table>
+  <p>Trạng thái <strong>Sẵn sàng</strong> = RAG tìm được.</p>
+
+  <h2>4. Khởi động — một lệnh (khuyến nghị)</h2>
+  <pre>cd D:\CODE\MINERU\mineru-knowledge-admin
+.\start-all.ps1</pre>
+  <p>Mở Docker + 3 cửa sổ: MinerU, API, Admin. Dừng: <code>.\stop-all.ps1</code></p>
+  <p><strong>Điều kiện:</strong> Docker Desktop đang chạy; đã có <code>api\.env</code> (OPENAI_API_KEY, ADMIN_*, …).</p>
+
+  <h2>5. Khởi động thủ công (4 bước)</h2>
+  <table>
+    <tr><th>#</th><th>Thư mục</th><th>Lệnh</th><th>Port</th></tr>
+    <tr><td>1</td><td>mineru-knowledge-admin</td><td>docker compose up -d</td><td>5433, 6380, 9000</td></tr>
+    <tr><td>2</td><td>MinerU</td><td>.\run-mineru.ps1 api</td><td>8000</td></tr>
+    <tr><td>3</td><td>mineru-knowledge-admin</td><td>.\run-api.ps1</td><td>3000</td></tr>
+    <tr><td>4</td><td>mineru-knowledge-admin</td><td>.\run-admin.ps1</td><td>5173</td></tr>
+  </table>
+
+  <h2>6. URL & đăng nhập</h2>
+  <table>
+    <tr><th>Dịch vụ</th><th>URL</th></tr>
+    <tr><td>Admin</td><td>http://127.0.0.1:5173/admin/</td></tr>
+    <tr><td>API health</td><td>http://127.0.0.1:3000/api/v1/health</td></tr>
+    <tr><td>Swagger</td><td>http://127.0.0.1:3000/docs</td></tr>
+    <tr><td>Login dev</td><td>admin@local.dev / admin123</td></tr>
+  </table>
+
+  <h2>7. API Key cho chatbot</h2>
+  <ol>
+    <li>Admin → <strong>API Keys</strong> → Tạo key → copy <code>mk_live_...</code> (một lần).</li>
+    <li>Bot gọi:</li>
+  </ol>
+  <pre>POST http://127.0.0.1:3000/api/v1/rag/query
+X-API-Key: mk_live_...
+{"question":"...","documentIds":["uuid"],"topK":8}</pre>
+  <p>Key chỉ dùng RAG; không upload/parse/index.</p>
+
+  <h2>8. Lỗi thường gặp</h2>
+  <table>
+    <tr><th>Triệu chứng</th><th>Xử lý</th></tr>
+    <tr><td>API offline</td><td>Chạy run-api.ps1; port 3000 trùng</td></tr>
+    <tr><td>Parse lỗi</td><td>Chạy run-mineru.ps1 api</td></tr>
+    <tr><td>Index 429</td><td>Nạp credit OpenAI</td></tr>
+    <tr><td>Bot 401</td><td>Key sai / đã thu hồi</td></tr>
+  </table>
+
+  <h2>9. Cấu trúc thư mục</h2>
+  <pre>D:\CODE\MINERU\
+├── MinerU\run-mineru.ps1 api
+└── mineru-knowledge-admin\
+    start-all.ps1 | stop-all.ps1
+    run-api.ps1 | run-admin.ps1
+    api\.env | admin-ui\ | docs\</pre>
+</body>
+</html>

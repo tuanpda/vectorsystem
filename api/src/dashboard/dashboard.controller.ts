@@ -1,0 +1,15 @@
+import { Controller, Get } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { DashboardService } from './dashboard.service';
+
+@ApiTags('dashboard')
+@Controller('dashboard')
+export class DashboardController {
+  constructor(private readonly dashboard: DashboardService) {}
+
+  @Get('stats')
+  @ApiOperation({ summary: 'Overview stats for admin dashboard' })
+  getStats() {
+    return this.dashboard.getStats();
+  }
+}

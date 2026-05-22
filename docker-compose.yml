@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: mk-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: mk
+      POSTGRES_PASSWORD: mk_secret
+      POSTGRES_DB: knowledge
+    volumes:
+      - mk_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mk -d knowledge"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: mk-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - mk_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: mk-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: mkminio
+      MINIO_ROOT_PASSWORD: mkminio_secret
+    volumes:
+      - mk_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Tạo bucket mặc định khi MinIO sẵn sàng
+  minio-init:
+    image: minio/mc:latest
+    container_name: mk-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 mkminio mkminio_secret &&
+      mc mb -p local/knowledge || true &&
+      mc anonymous set download local/knowledge || true &&
+      echo 'Bucket knowledge ready'
+      "
+
+volumes:
+  mk_postgres_data:
+  mk_redis_data:
+  mk_minio_data:
