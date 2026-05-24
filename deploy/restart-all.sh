@@ -3,8 +3,8 @@
 set -euo pipefail
 PLATFORM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-cd "$PLATFORM_DIR"
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+chmod +x "$PLATFORM_DIR/deploy/compose-prod.sh"
+"$PLATFORM_DIR/deploy/compose-prod.sh" up -d
 
 systemctl restart knowledge-api 2>/dev/null || echo "Chưa có knowledge-api.service"
 systemctl restart mineru-api 2>/dev/null || echo "Chưa có mineru-api.service"

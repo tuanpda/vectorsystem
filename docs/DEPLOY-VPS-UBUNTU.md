@@ -78,7 +78,7 @@ sudo ./deploy/install.sh
 
 Script sẽ:
 
-- Docker `compose` + `docker-compose.prod.yml` (port chỉ bind `127.0.0.1`)
+- Docker `./deploy/compose-prod.sh` (`docker-compose.prod.yml` + `ports: !reset`, chỉ bind `127.0.0.1`)
 - `npm run build` admin-ui + api
 - `prisma migrate deploy`
 - Cài & bật `knowledge-api.service`
@@ -154,7 +154,7 @@ sudo ./deploy/restart-all.sh # Khởi động lại Docker + API + MinerU
 
 journalctl -u knowledge-api -f
 journalctl -u mineru-api -f
-docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f
+./deploy/compose-prod.sh logs -f
 ```
 
 Cập nhật code:
@@ -186,11 +186,27 @@ Tạo key trong Admin → **API Keys**.
 
 | Triệu chứng | Gợi ý |
 |-------------|--------|
+| `9000 ... address already in use` khi `docker compose` | File `docker-compose.prod.yml` phải dùng `ports: !reset` (tránh gộp trùng port với `docker-compose.yml`). `git pull` rồi `./deploy/compose-prod.sh down` và `up -d` |
 | API không lên | `journalctl -u knowledge-api -n 50` |
 | MinerU offline | `journalctl -u mineru-api -n 50`, thiếu RAM → thêm swap |
 | 502 Nginx | API chưa chạy / sai port 3000 |
 | Index 429 | OpenAI billing |
 | Upload lớn fail | `client_max_body_size` trong Nginx (mẫu đã 100M) |
+
+### Cập nhật code trên VPS (sau khi sửa repo)
+
+```bash
+cd ~/vector/vectorsystem   # hoặc /opt/knowledge/mineru-knowledge-admin
+git pull
+chmod +x deploy/*.sh
+
+./deploy/compose-prod.sh down
+./deploy/compose-prod.sh up -d
+docker ps   # mk-postgres, mk-redis, mk-minio đều Up
+
+export MINERU_DIR=~/vector/MinerU
+sudo MINERU_DIR=$MINERU_DIR ./deploy/install.sh
+```
 
 ---
 

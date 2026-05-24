@@ -44,8 +44,8 @@ fi
 
 if [[ "$SKIP_DOCKER" != "1" ]]; then
   echo "==> Docker Compose (Postgres, Redis, MinIO)..."
-  cd "$PLATFORM_DIR"
-  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+  chmod +x "$PLATFORM_DIR/deploy/compose-prod.sh"
+  "$PLATFORM_DIR/deploy/compose-prod.sh" up -d
   echo "Đợi Postgres healthy..."
   for i in $(seq 1 30); do
     if docker exec mk-postgres pg_isready -U mk -d knowledge >/dev/null 2>&1; then

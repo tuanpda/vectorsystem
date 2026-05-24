@@ -90,7 +90,20 @@ X-API-Key: mk_live_<secret>
 
 ---
 
-## 6. Kiểm tra nhanh
+## 6. Sau khi `git pull` (sửa Docker port)
+
+```bash
+cd ~/vector/vectorsystem
+git pull
+chmod +x deploy/*.sh
+./deploy/compose-prod.sh down && ./deploy/compose-prod.sh up -d
+export MINERU_DIR=~/vector/MinerU
+sudo MINERU_DIR=$MINERU_DIR ./deploy/install.sh
+```
+
+---
+
+## 7. Kiểm tra nhanh
 
 ```bash
 curl -s https://vectorsystem.io.vn/api/v1/health
@@ -100,7 +113,7 @@ curl -s -o /dev/null -w "%{http_code}" https://vectorsystem.io.vn/admin/
 
 ---
 
-## 7. Firewall VPS
+## 8. Firewall VPS
 
 Chỉ mở:
 
