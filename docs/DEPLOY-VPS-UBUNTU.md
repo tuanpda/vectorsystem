@@ -187,6 +187,7 @@ Tạo key trong Admin → **API Keys**.
 | Triệu chứng | Gợi ý |
 |-------------|--------|
 | `9000 ... address already in use` khi `docker compose` | File `docker-compose.prod.yml` phải dùng `ports: !reset` (tránh gộp trùng port với `docker-compose.yml`). `git pull` rồi `./deploy/compose-prod.sh down` và `up -d` |
+| `mk-minio is unhealthy` | Image MinIO mới bỏ `curl` — healthcheck cũ fail. `git pull` (đã tắt healthcheck + minio-init retry). `docker logs mk-minio` nếu vẫn lỗi |
 | API không lên | `journalctl -u knowledge-api -n 50` |
 | MinerU offline | `journalctl -u mineru-api -n 50`, thiếu RAM → thêm swap |
 | 502 Nginx | API chưa chạy / sai port 3000 |
