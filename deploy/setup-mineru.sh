@@ -2,6 +2,17 @@
 # Cài MinerU Python env (chạy 1 lần, có thể 10–30 phút tải model)
 set -euo pipefail
 
+# OpenCV / pipeline cần libGL trên VPS không có desktop (lỗi libGL.so.1 khi parse)
+if command -v apt-get >/dev/null 2>&1; then
+  echo "==> Thư viện hệ thống (libGL, fonts)..."
+  apt-get update -qq
+  DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+    libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 \
+    fonts-noto-core fonts-noto-cjk 2>/dev/null \
+    || DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+    libgl1-mesa-glx libglib2.0-0
+fi
+
 MINERU_DIR="${MINERU_DIR:-/opt/knowledge/MinerU}"
 
 if [[ ! -d "$MINERU_DIR" ]]; then

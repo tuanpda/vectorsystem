@@ -83,7 +83,12 @@ if [[ "$SKIP_SYSTEMD" != "1" ]]; then
 
   if [[ -d "$MINERU_DIR" ]]; then
     echo "==> Cài systemd mineru-api..."
-    chmod +x "$MINERU_DIR/run-mineru.sh" 2>/dev/null || true
+    if [[ -f "$MINERU_DIR/run-mineru.sh" ]]; then
+      sed -i 's/\r$//' "$MINERU_DIR/run-mineru.sh" 2>/dev/null || true
+      chmod +x "$MINERU_DIR/run-mineru.sh"
+    else
+      echo "Cảnh báo: thiếu $MINERU_DIR/run-mineru.sh — git pull repo MinerU" >&2
+    fi
     sed -e "s|__DEPLOY_USER__|$DEPLOY_USER|g" \
         -e "s|__MINERU_DIR__|$MINERU_DIR|g" \
       "$PLATFORM_DIR/deploy/systemd/mineru-api.service" \

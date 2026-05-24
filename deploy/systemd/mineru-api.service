@@ -8,7 +8,13 @@ Type=simple
 User=__DEPLOY_USER__
 WorkingDirectory=__MINERU_DIR__
 Environment=HF_HUB_DISABLE_SYMLINKS=1
-ExecStart=__MINERU_DIR__/run-mineru.sh api
+Environment=MINERU_DEVICE_MODE=cpu
+Environment=CUDA_VISIBLE_DEVICES=
+Environment=OMP_NUM_THREADS=2
+Environment=MKL_NUM_THREADS=2
+Environment=ATEN_CPU_CAPABILITY=DEFAULT
+# /bin/bash — tránh systemd 203/EXEC (thiếu +x hoặc CRLF trên run-mineru.sh)
+ExecStart=/bin/bash __MINERU_DIR__/run-mineru.sh api
 Restart=always
 RestartSec=10
 StandardOutput=journal

@@ -160,10 +160,21 @@ journalctl -u mineru-api -f
 Cập nhật code:
 
 ```bash
+# Platform
+cd /opt/knowledge/mineru-knowledge-admin   # hoặc ~/vector/vectorsystem
 git pull
 cd admin-ui && npm ci && npm run build
 cd ../api && npm ci && npx prisma migrate deploy && npm run build
 sudo systemctl restart knowledge-api
+
+# MinerU (parse) — luôn pull repo MinerU riêng, không sửa tay trên VPS
+cd /opt/knowledge/MinerU   # hoặc ~/vector/MinerU
+git pull
+chmod +x run-mineru.sh
+sudo sed -e "s|__DEPLOY_USER__|$USER|g" -e "s|__MINERU_DIR__|$(pwd)|g" \
+  ../mineru-knowledge-admin/deploy/systemd/mineru-api.service \
+  | sudo tee /etc/systemd/system/mineru-api.service
+sudo systemctl daemon-reload && sudo systemctl restart mineru-api
 ```
 
 ---
@@ -192,6 +203,8 @@ Tạo key trong Admin → **API Keys**.
 | `docker port mk-postgres` trống | `git pull` — ports `127.0.0.1` nằm trong `docker-compose.yml`. Chạy lại `./deploy/compose-prod.sh up -d` |
 | API không lên | `journalctl -u knowledge-api -n 50` |
 | MinerU offline | `journalctl -u mineru-api -n 50`, thiếu RAM → thêm swap |
+| Parse fail `libGL.so.1` | `sudo apt install -y libgl1 libglib2.0-0` rồi `sudo systemctl restart mineru-api` |
+| Parse fail `could not create a primitive` | PyTorch/oneDNN trên CPU cũ: set `MINERU_DEVICE_MODE=cpu`, `ATEN_CPU_CAPABILITY=DEFAULT` trong `run-mineru.sh`; thử PDF nhỏ; xem `journalctl -u mineru-api`; có thể `pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu` trong `.venv` |
 | 502 Nginx | API chưa chạy / sai port 3000 |
 | Index 429 | OpenAI billing |
 | Upload lớn fail | `client_max_body_size` trong Nginx (mẫu đã 100M) |
