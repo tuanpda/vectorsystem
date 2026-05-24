@@ -1,18 +1,5 @@
-# Production: chỉ bind localhost (dùng cùng docker-compose.yml)
-# docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-#
-# !reset — thay thế ports từ docker-compose.yml (tránh bind trùng 9000/5433/6380)
+# Overlay tùy chọn (tương thích deploy/compose-prod.sh).
+# Port localhost + MinIO cpuv1 đã cấu hình trong docker-compose.yml
+# (tránh !reset — một số bản Docker Compose trên VPS xóa hết ports).
 
-services:
-  postgres:
-    ports: !reset
-      - "127.0.0.1:5433:5432"
-
-  redis:
-    ports: !reset
-      - "127.0.0.1:6380:6379"
-
-  minio:
-    ports: !reset
-      - "127.0.0.1:9000:9000"
-      - "127.0.0.1:9001:9001"
+services: {}

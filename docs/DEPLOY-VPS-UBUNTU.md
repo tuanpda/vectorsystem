@@ -78,7 +78,7 @@ sudo ./deploy/install.sh
 
 Script sẽ:
 
-- Docker `./deploy/compose-prod.sh` (`docker-compose.prod.yml` + `ports: !reset`, chỉ bind `127.0.0.1`)
+- Docker `./deploy/compose-prod.sh` (ports `127.0.0.1` trong `docker-compose.yml`)
 - `npm run build` admin-ui + api
 - `prisma migrate deploy`
 - Cài & bật `knowledge-api.service`
@@ -186,8 +186,10 @@ Tạo key trong Admin → **API Keys**.
 
 | Triệu chứng | Gợi ý |
 |-------------|--------|
-| `9000 ... address already in use` khi `docker compose` | File `docker-compose.prod.yml` phải dùng `ports: !reset` (tránh gộp trùng port với `docker-compose.yml`). `git pull` rồi `./deploy/compose-prod.sh down` và `up -d` |
+| `9000 ... address already in use` | Trước đây do gộp 2 file compose trùng port — hiện ports chỉ trong `docker-compose.yml` (`127.0.0.1`). `git pull` rồi `compose-prod.sh down` và `up -d` |
 | `mk-minio is unhealthy` | Image MinIO mới bỏ `curl` — healthcheck cũ fail. `git pull` (đã tắt healthcheck + minio-init retry). `docker logs mk-minio` nếu vẫn lỗi |
+| `CPU does not support x86-64-v2` | VPS CPU cũ — dùng image `*-cpuv1` (đã cấu hình trong `docker-compose.yml`). Không đổi sang `:latest` |
+| `docker port mk-postgres` trống | `git pull` — ports `127.0.0.1` nằm trong `docker-compose.yml`. Chạy lại `./deploy/compose-prod.sh up -d` |
 | API không lên | `journalctl -u knowledge-api -n 50` |
 | MinerU offline | `journalctl -u mineru-api -n 50`, thiếu RAM → thêm swap |
 | 502 Nginx | API chưa chạy / sai port 3000 |
