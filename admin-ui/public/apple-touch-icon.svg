@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="MinerU Knowledge">
+  <defs>
+    <linearGradient id="bg" x1="20" y1="16" x2="160" y2="164" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4f46e5"/>
+      <stop stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="url(#bg)"/>
+  <path
+    fill="#ffffff"
+    d="M52 48h30c16 0 26 8.5 26 22.5 0 9-4.5 16-13 19.5 10 2.5 17 10 17 23.5 0 15.5-12 25.5-31 25.5H52V48zm17 35h11c6 0 9.5-2.8 9.5-7.5S86 68 80 68H69v15zm0 35h13c7.5 0 11.5-3.5 11.5-8.5S89.5 101 82 101H69v17z"
+  />
+</svg>
