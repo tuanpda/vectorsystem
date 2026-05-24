@@ -1,8 +1,11 @@
 node_modules/
 dist/
 admin-ui/dist/
+admin-ui/tsconfig.tsbuildinfo
 .env
 .env.local
+.env.save
+api/.env.save
 *.log
 .DS_Store
 coverage/
