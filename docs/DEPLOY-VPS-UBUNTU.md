@@ -157,6 +157,35 @@ journalctl -u mineru-api -f
 ./deploy/compose-prod.sh logs -f
 ```
 
+## 8b. Git trên VPS — tránh conflict `deploy/*.sh`
+
+**Quy tắc:** Trên VPS **không sửa** `deploy/install.sh`, `deploy/setup-mineru.sh` (và mọi file trong repo).  
+Chỉ sửa trên máy dev → `git push` → VPS `git pull`.
+
+| Đúng | Sai |
+|------|-----|
+| `api/.env` (secrets, không commit) | `nano deploy/install.sh` trên VPS |
+| `git pull` | Sửa script deploy rồi mỗi lần pull bị conflict |
+
+**Đường dẫn MinerU** — dùng biến môi trường, không sửa file:
+
+```bash
+export MINERU_DIR=/root/vector/MinerU
+sudo MINERU_DIR=$MINERU_DIR ./deploy/setup-mineru.sh
+```
+
+**Đồng bộ lại giống GitHub** (khi `git pull` báo overwrite):
+
+```bash
+cd ~/vector/vectorsystem
+git diff deploy/install.sh deploy/setup-mineru.sh   # xem khác gì (tùy chọn)
+git checkout -- deploy/install.sh deploy/setup-mineru.sh
+git pull
+git status   # phải sạch: nothing to commit
+```
+
+**Không nên** dùng `git update-index --assume-unchanged` để “bỏ qua” file — sau này khó quản lý.
+
 Cập nhật code:
 
 ```bash
